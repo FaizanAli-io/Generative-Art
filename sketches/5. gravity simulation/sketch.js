@@ -1,34 +1,56 @@
 const G = 1;
-const n = 0;
+const n = 100;
 
 let bodies = [];
 let particles = [];
 
-function createPolarBodies(r, v, mArr) {
-  let offset = createVector(width / 2, height / 2);
-  let n = mArr.length;
-  let config = [];
+const red = [255, 0, 0];
+const blue = [0, 0, 255];
+const green = [0, 255, 0];
+
+function createPolarBodies(n, r, v, mass, offset, color) {
+  let bodies = [];
 
   for (let i = 0; i < n; i++) {
     let angle = (2 * PI * i) / n;
-    config.push({
+    bodies.push({
       px: r * cos(angle) + offset.x,
       py: r * sin(angle) + offset.y,
       vx: -v * sin(angle),
       vy: v * cos(angle),
-      m: mArr[i]
+      c: color,
+      m: mass
     });
   }
 
-  return config;
+  return bodies;
 }
 
 function setup() {
-  createCanvas(1200, 600);
+  createCanvas(1400, 800);
 
-  let size = 50;
-  let mArr = [size * 3, size * 2, size, size * 3, size * 2, size, size * 3, size * 2, size];
-  bodyConfig = createPolarBodies(200, 5, mArr);
+  let center = createVector(width / 2, height / 2);
+  // bodyConfig = createPolarBodies(1, 0, 0, 25, center, red);
+  // bodyConfig = [...bodyConfig, ...createPolarBodies(4, 200, 10, 100, center, red)];
+  bodyConfig = createPolarBodies(6, 200, 5, 100, center, blue);
+
+  let planets = [];
+  for (const body of bodyConfig) {
+    planets = [
+      ...planets,
+      ...createPolarBodies(4, 25, 0.1, 25, createVector(body.px, body.py), blue)
+    ];
+  }
+
+  // bodyConfig[0].px += -100;
+
+  // let i = 0;
+  // for (const planet of planets) {
+  //   planet.px += 50;
+  //   if (++i % 2) planet.m *= 2;
+  // }
+
+  // bodyConfig = [...bodyConfig, ...planets];
 
   for (let i = 0; i < n; i++) particles.push(new Particle());
   for (let j = 0; j < bodyConfig.length; j++) bodies.push(new Body(bodyConfig[j]));
@@ -51,7 +73,7 @@ class Particle {
     this.pos = createVector(random(width), random(height));
     this.vel = createVector(0, 0);
     this.acc = createVector();
-    this.mass = 1;
+    this.mass = random(1, 3);
   }
 
   computeGravity(bodies) {
@@ -77,10 +99,11 @@ class Particle {
 }
 
 class Body {
-  constructor({ px, py, vx, vy, m }) {
+  constructor({ px, py, vx, vy, c, m }) {
     this.pos = createVector(px, py);
     this.vel = createVector(vx, vy);
     this.acc = createVector();
+    this.color = c;
     this.mass = m;
   }
 
@@ -103,7 +126,7 @@ class Body {
 
   display() {
     noStroke();
-    fill(255, 0, 0);
+    fill(...this.color);
     ellipse(this.pos.x, this.pos.y, this.mass * 0.25);
   }
 }
